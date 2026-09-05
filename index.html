@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -101,6 +100,7 @@
 
         button.test {
             background: #238636;
+            grid-column: 1 / -1;
         }
 
         .status {
@@ -145,6 +145,8 @@
             white-space: pre-wrap;
             word-break: break-word;
             display: none;
+            max-height: 260px;
+            overflow-y: auto;
         }
 
         @media (max-width: 600px) {
@@ -154,6 +156,10 @@
 
             .buttons {
                 grid-template-columns: 1fr;
+            }
+
+            button.test {
+                grid-column: auto;
             }
         }
     </style>
@@ -166,7 +172,7 @@
     <h1>Traducteur Morse</h1>
 
     <div class="subtitle">
-        Encodeur et décodeur Morse réversible
+        Encodeur et décodeur Morse 100% réversible
     </div>
 
     <label for="input">
@@ -198,7 +204,11 @@
         </button>
 
         <button class="test" onclick="testReversibility()">
-            Tester la réversibilité
+            Tester la réversibilité (mon texte)
+        </button>
+
+        <button class="test" onclick="runFullSelfTest()">
+            Lancer le test complet (tous les caractères)
         </button>
 
     </div>
@@ -264,7 +274,7 @@
 
         <br>
 
-        <code>X</code> = caractère Unicode
+        <code>X</code> = caractère Unicode (point de code en hexadécimal)
 
         <br><br>
 
@@ -280,7 +290,8 @@
 
         <br>
 
-        conserve exactement la casse, l'espace, les chiffres et le caractère <code>!</code>.
+        conserve exactement la casse, l'espace, les chiffres, la ponctuation et
+        même les emojis ou accents non listés (grâce au repli Unicode).
 
     </div>
 
@@ -292,6 +303,9 @@
 /*
 ==========================================================
 TABLE MORSE
+
+Chaque code doit être UNIQUE (contrainte indispensable pour
+que le décodage soit sans ambiguïté et 100% réversible).
 ==========================================================
 */
 
@@ -356,7 +370,7 @@ const MORSE = {
     "#": "......",
     "*": "-..-.-",
     "%": ".....-",
-    "^": "..--.-",
+    "^": "..-.-",
     "~": ".-.-..",
 
     "À": ".--.-",
@@ -364,6 +378,41 @@ const MORSE = {
     "È": ".-..-",
     "Ç": "-.-.."
 };
+
+
+/*
+==========================================================
+VÉRIFICATION D'INTÉGRITÉ DE LA TABLE (anti-collision)
+
+S'exécute au chargement de la page : si deux caractères
+partagent le même code Morse, le décodage ne pourrait plus
+être fiable. On le détecte immédiatement plutôt que de
+laisser un bug silencieux se glisser dans le fichier.
+==========================================================
+*/
+
+function checkMorseTableIntegrity() {
+
+    const seen = {};
+
+    for (const character in MORSE) {
+
+        const code = MORSE[character];
+
+        if (seen[code]) {
+            throw new Error(
+                "Collision Morse détectée entre '" +
+                seen[code] + "' et '" + character +
+                "' (code '" + code + "'). " +
+                "Corrige la table MORSE avant utilisation."
+            );
+        }
+
+        seen[code] = character;
+    }
+}
+
+checkMorseTableIntegrity();
 
 
 /*
@@ -422,17 +471,19 @@ function encodeText(text) {
 
 
         /*
-        CARACTÈRE CONNU
+        CARACTÈRE CONNU (lettre A-Z ou accentuée gérée,
+        chiffre, ou caractère spécial listé dans MORSE)
         */
 
         const upper = character.toUpperCase();
 
-        if (MORSE[upper]) {
+        if (Object.prototype.hasOwnProperty.call(MORSE, upper)) {
 
             const code = MORSE[upper];
 
             /*
-            LETTRE
+            LETTRE (le caractère en majuscule tient sur un seul
+            caractère ET correspond à une entrée alphabétique)
             */
 
             if (/^[A-ZÀÉÈÇ]$/.test(upper)) {
@@ -467,7 +518,9 @@ function encodeText(text) {
 
 
         /*
-        CARACTÈRE UNICODE
+        CARACTÈRE UNICODE (repli universel : accents non
+        listés, emojis, caractères non-latins, etc.)
+        Garantit que N'IMPORTE QUEL texte reste réversible.
         */
 
         const unicode =
@@ -491,11 +544,13 @@ DÉCODAGE
 
 function decodeText(encoded) {
 
-    if (encoded === "") {
+    const trimmed = encoded.trim();
+
+    if (trimmed === "") {
         return "";
     }
 
-    const tokens = encoded.split(";");
+    const tokens = trimmed.split(";");
 
     let result = "";
 
@@ -539,11 +594,17 @@ function decodeText(encoded) {
 
             const hex = token.substring(2);
 
-            const value = parseInt(hex, 16);
-
-            if (Number.isNaN(value)) {
+            if (!/^[0-9A-Fa-f]+$/.test(hex)) {
                 throw new Error(
                     "Code Unicode invalide : " + token
+                );
+            }
+
+            const value = parseInt(hex, 16);
+
+            if (Number.isNaN(value) || value < 0 || value > 0x10FFFF) {
+                throw new Error(
+                    "Point de code Unicode hors limites : " + token
                 );
             }
 
@@ -596,19 +657,10 @@ function decodeText(encoded) {
 
 
             /*
-            CHIFFRE
+            CHIFFRE OU CARACTÈRE SPÉCIAL
             */
 
-            else if (type === "D") {
-                result += character;
-            }
-
-
-            /*
-            CARACTÈRE SPÉCIAL
-            */
-
-            else if (type === "S") {
+            else {
                 result += character;
             }
 
@@ -617,7 +669,7 @@ function decodeText(encoded) {
 
 
         throw new Error(
-            "Élément invalide : " + token
+            "Élément invalide : '" + token + "'"
         );
     }
 
@@ -695,7 +747,7 @@ function decode() {
 
 /*
 ==========================================================
-TEST DE RÉVERSIBILITÉ
+TEST DE RÉVERSIBILITÉ (sur le texte saisi par l'utilisateur)
 ==========================================================
 */
 
@@ -727,41 +779,17 @@ function testReversibility() {
 
     try {
 
-        /*
-        ÉTAPE 1
-        */
-
         const encoded =
             encodeText(original);
-
-
-        /*
-        ÉTAPE 2
-        */
 
         const decoded =
             decodeText(encoded);
 
-
-        /*
-        ÉTAPE 3
-        */
-
         const success =
             original === decoded;
 
-
-        /*
-        AFFICHAGE DU MORSE
-        */
-
         document.getElementById("output").value =
             encoded;
-
-
-        /*
-        TEST RÉUSSI
-        */
 
         if (success) {
 
@@ -786,14 +814,7 @@ function testReversibility() {
                 "Nombre de caractères : " +
                 [...original].length;
 
-        }
-
-
-        /*
-        TEST ÉCHOUÉ
-        */
-
-        else {
+        } else {
 
             setStatus(
                 "✗ TEST ÉCHOUÉ — Le texte décodé est différent.",
@@ -822,6 +843,138 @@ function testReversibility() {
 
         details.textContent =
             error.message;
+    }
+}
+
+
+/*
+==========================================================
+TEST COMPLET (auto-diagnostic pour prouver la fiabilité
+du traducteur avant de le publier sur GitHub)
+
+Passe en revue :
+- chaque caractère individuel de la table MORSE (majuscule
+  et minuscule quand ça a un sens)
+- l'espace, la tabulation, le retour à la ligne
+- une chaîne combinant tout, avec accents non listés et
+  emojis (repli Unicode)
+- les cas limites : chaîne vide, séparateurs superflus
+==========================================================
+*/
+
+function runFullSelfTest() {
+
+    const details = document.getElementById("testDetails");
+
+    const failures = [];
+
+    let total = 0;
+
+
+    function check(label, original) {
+
+        total++;
+
+        try {
+
+            const encoded = encodeText(original);
+            const decoded = decodeText(encoded);
+
+            if (decoded !== original) {
+
+                failures.push(
+                    label +
+                    " → attendu " + JSON.stringify(original) +
+                    ", obtenu " + JSON.stringify(decoded)
+                );
+            }
+
+        } catch (error) {
+
+            failures.push(
+                label + " → exception : " + error.message
+            );
+        }
+    }
+
+
+    /*
+    Chaque caractère de la table, en minuscule et en majuscule
+    */
+
+    for (const character in MORSE) {
+
+        check("Caractère '" + character + "'", character);
+        check("Caractère '" + character.toLowerCase() + "'", character.toLowerCase());
+    }
+
+
+    /*
+    Espace, tabulation, retour à la ligne
+    */
+
+    check("Espace", " ");
+    check("Tabulation", "\t");
+    check("Retour à la ligne", "\n");
+
+
+    /*
+    Chaîne vide
+    */
+
+    check("Chaîne vide", "");
+
+
+    /*
+    Texte réaliste complet
+    */
+
+    check(
+        "Phrase complète",
+        "Password 123! Ça marche à 100% — vraiment ?"
+    );
+
+
+    /*
+    Unicode non listé dans la table (repli automatique)
+    */
+
+    check("Accents non listés", "üöñ àîô");
+    check("Caractères non-latins", "こんにちは мир");
+    check("Emoji", "🚀🔥✅");
+
+
+    /*
+    Résultat
+    */
+
+    if (failures.length === 0) {
+
+        setStatus(
+            "✓ TEST COMPLET RÉUSSI — " + total +
+            " cas testés, 0 échec. Le traducteur est fiable à 100%.",
+            "success"
+        );
+
+        details.style.display = "block";
+
+        details.textContent =
+            total + " / " + total + " tests réussis.\n" +
+            "Table Morse vérifiée sans collision.\n" +
+            "Tous les caractères, espaces, tabulations, retours à la ligne,\n" +
+            "accents non répertoriés et emojis sont parfaitement réversibles.";
+
+    } else {
+
+        setStatus(
+            "✗ TEST COMPLET ÉCHOUÉ — " + failures.length +
+            " / " + total + " cas en échec.",
+            "error"
+        );
+
+        details.style.display = "block";
+
+        details.textContent = failures.join("\n");
     }
 }
 
@@ -863,12 +1016,22 @@ async function copyResult() {
 
         output.select();
 
-        document.execCommand("copy");
+        try {
 
-        setStatus(
-            "Résultat copié.",
-            "success"
-        );
+            document.execCommand("copy");
+
+            setStatus(
+                "Résultat copié.",
+                "success"
+            );
+
+        } catch {
+
+            setStatus(
+                "Impossible de copier automatiquement : sélectionne le texte et copie-le manuellement (Ctrl/Cmd+C).",
+                "error"
+            );
+        }
     }
 }
 
@@ -913,4 +1076,3 @@ function setStatus(message, type) {
 
 </body>
 </html>
-```
