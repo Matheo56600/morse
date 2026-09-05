@@ -1,0 +1,320 @@
+```html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encodeur Morse personnalisé</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background: #0f1115;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: #181b21;
+            border: 1px solid #2d323b;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            text-align: center;
+            color: #9da3ad;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            resize: vertical;
+            background: #0f1115;
+            color: #ffffff;
+            border: 1px solid #343a45;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: #6c7cff;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 180px;
+            padding: 13px 18px;
+            border: none;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            background: #5865f2;
+            color: white;
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+        }
+
+        button.secondary {
+            background: #30343d;
+        }
+
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #101217;
+            border-radius: 10px;
+            color: #aeb4bf;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .status {
+            margin-top: 10px;
+            color: #7ee787;
+            min-height: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Encodeur Morse personnalisé</h1>
+
+    <div class="description">
+        Morse avec distinction entre majuscules et minuscules
+    </div>
+
+    <label for="input">Texte / Morse</label>
+
+    <textarea
+        id="input"
+        placeholder="Écris ton texte ici..."
+    ></textarea>
+
+    <div class="buttons">
+        <button onclick="encode()">Encoder en Morse</button>
+        <button onclick="decode()" class="secondary">Décoder le Morse</button>
+        <button onclick="copyResult()" class="secondary">Copier</button>
+        <button onclick="clearAll()" class="secondary">Effacer</button>
+    </div>
+
+    <label for="output">Résultat</label>
+
+    <textarea
+        id="output"
+        readonly
+        placeholder="Le résultat apparaîtra ici..."
+    ></textarea>
+
+    <div class="status" id="status"></div>
+
+    <div class="info">
+        <strong>Format utilisé :</strong><br>
+        • Une lettre = son code Morse<br>
+        • Une minuscule possède un <code>_</code> supplémentaire à la fin<br>
+        • Les lettres sont séparées par un espace<br>
+        • Les mots sont séparés par <code>/</code><br><br>
+
+        Exemple :<br>
+        <code>AaBb</code> devient
+        <code>.- .-_ -... -..._</code>
+    </div>
+
+</div>
+
+<script>
+    const morse = {
+        "A": ".-",    "B": "-...",  "C": "-.-.",  "D": "-..",
+        "E": ".",     "F": "..-.",  "G": "--.",   "H": "....",
+        "I": "..",    "J": ".---",  "K": "-.-",   "L": ".-..",
+        "M": "--",    "N": "-.",    "O": "---",   "P": ".--.",
+        "Q": "--.-",  "R": ".-.",   "S": "...",   "T": "-",
+        "U": "..-",   "V": "...-",  "W": ".--",   "X": "-..-",
+        "Y": "-.--",  "Z": "--..",
+
+        "0": "-----",
+        "1": ".----",
+        "2": "..---",
+        "3": "...--",
+        "4": "....-",
+        "5": ".....",
+        "6": "-....",
+        "7": "--...",
+        "8": "---..",
+        "9": "----.",
+
+        ".": ".-.-.-",
+        ",": "--..--",
+        "?": "..--..",
+        "!": "-.-.--",
+        "'": ".----.",
+        "\"": ".-..-.",
+        ":": "---...",
+        ";": "-.-.-.",
+        "/": "-..-.",
+        "(": "-.--.",
+        ")": "-.--.-",
+        "&": ".-...",
+        "=": "-...-",
+        "+": ".-.-.",
+        "-": "-....-",
+        "_": "..--.-",
+        "$": "...-..-",
+        "@": ".--.-."
+    };
+
+    const input = document.getElementById("input");
+    const output = document.getElementById("output");
+    const status = document.getElementById("status");
+
+    function encode() {
+        const text = input.value;
+
+        let result = "";
+
+        for (const char of text) {
+
+            if (char === " ") {
+                result += "/ ";
+                continue;
+            }
+
+            const upper = char.toUpperCase();
+
+            if (morse[upper]) {
+
+                // Minuscule = Morse + "_"
+                if (char !== upper && /[A-Z]/.test(upper)) {
+                    result += morse[upper] + "_ ";
+                } else {
+                    result += morse[upper] + " ";
+                }
+
+            } else {
+                result += char + " ";
+            }
+        }
+
+        output.value = result.trim();
+        status.textContent = "Texte encodé.";
+    }
+
+    function decode() {
+
+        const text = input.value.trim();
+
+        if (!text) {
+            output.value = "";
+            return;
+        }
+
+        const reverse = {};
+
+        for (const letter in morse) {
+            reverse[morse[letter]] = letter;
+        }
+
+        const words = text.split("/");
+
+        const decodedWords = words.map(word => {
+
+            const letters = word.trim().split(/\s+/);
+
+            return letters.map(code => {
+
+                // "_" final = minuscule
+                if (code.endsWith("_")) {
+
+                    const normalCode = code.slice(0, -1);
+                    const letter = reverse[normalCode];
+
+                    if (letter && /[A-Z]/.test(letter)) {
+                        return letter.toLowerCase();
+                    }
+
+                    return "?";
+                }
+
+                return reverse[code] || "?";
+
+            }).join("");
+
+        });
+
+        output.value = decodedWords.join(" ");
+        status.textContent = "Morse décodé.";
+    }
+
+    async function copyResult() {
+
+        if (!output.value) {
+            status.textContent = "Rien à copier.";
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(output.value);
+            status.textContent = "Résultat copié.";
+        } catch {
+            output.select();
+            document.execCommand("copy");
+            status.textContent = "Résultat copié.";
+        }
+    }
+
+    function clearAll() {
+        input.value = "";
+        output.value = "";
+        status.textContent = "";
+    }
+</script>
+
+</body>
+</html>
+```
