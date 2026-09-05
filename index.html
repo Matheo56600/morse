@@ -18,27 +18,20 @@
             font-family: Arial, Helvetica, sans-serif;
             background: #0f1115;
             color: #ffffff;
-
             display: flex;
             justify-content: center;
             align-items: center;
-
             padding: 20px;
         }
 
         .container {
             width: 100%;
             max-width: 900px;
-
             background: #181b21;
-
             border: 1px solid #2d323b;
             border-radius: 16px;
-
             padding: 30px;
-
-            box-shadow:
-                0 20px 60px rgba(0, 0, 0, 0.45);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
         }
 
         h1 {
@@ -63,20 +56,14 @@
         textarea {
             width: 100%;
             min-height: 180px;
-
             resize: vertical;
-
             background: #0f1115;
             color: #ffffff;
-
             border: 1px solid #343a45;
             border-radius: 10px;
-
             padding: 15px;
-
             font-family: Consolas, monospace;
             font-size: 15px;
-
             outline: none;
         }
 
@@ -86,27 +73,20 @@
 
         .buttons {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
-
             margin: 20px 0;
         }
 
         button {
             border: none;
             border-radius: 9px;
-
             padding: 13px;
-
             background: #5865f2;
             color: white;
-
             font-size: 14px;
             font-weight: bold;
-
             cursor: pointer;
-
             transition: 0.15s;
         }
 
@@ -119,27 +99,31 @@
             background: #30343d;
         }
 
+        button.test {
+            background: #238636;
+        }
+
         .status {
-            min-height: 22px;
-
+            min-height: 24px;
             margin-top: 10px;
-
-            color: #7ee787;
-
             font-size: 14px;
+            font-weight: bold;
+        }
+
+        .success {
+            color: #7ee787;
+        }
+
+        .error {
+            color: #ff7b72;
         }
 
         .info {
             margin-top: 20px;
-
             padding: 15px;
-
             border-radius: 10px;
-
             background: #101217;
-
             color: #aeb4bf;
-
             font-size: 13px;
             line-height: 1.6;
         }
@@ -151,18 +135,22 @@
             font-family: Consolas, monospace;
         }
 
-        @media (max-width: 700px) {
+        .test-details {
+            margin-top: 10px;
+            padding: 12px;
+            background: #101217;
+            border-radius: 8px;
+            font-family: Consolas, monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            display: none;
+        }
 
-            .buttons {
-                grid-template-columns: 1fr 1fr;
-            }
-
+        @media (max-width: 600px) {
             .container {
                 padding: 20px;
             }
-        }
-
-        @media (max-width: 450px) {
 
             .buttons {
                 grid-template-columns: 1fr;
@@ -191,7 +179,6 @@
         placeholder="Écris ton texte ou colle ton Morse ici..."
     ></textarea>
 
-
     <div class="buttons">
 
         <button onclick="encode()">
@@ -210,8 +197,11 @@
             Effacer
         </button>
 
-    </div>
+        <button class="test" onclick="testReversibility()">
+            Tester la réversibilité
+        </button>
 
+    </div>
 
     <label for="output">
         Résultat
@@ -224,30 +214,61 @@
         placeholder="Le résultat apparaîtra ici..."
     ></textarea>
 
-    <div class="status" id="status"></div>
+    <div id="status" class="status"></div>
 
+    <div id="testDetails" class="test-details"></div>
 
     <div class="info">
 
-        <strong>Informations</strong>
+        <strong>Format utilisé</strong>
 
         <br><br>
 
-        Le système conserve exactement :
+        Chaque caractère est stocké comme :
+
+        <br><br>
+
+        <code>type|codeMorse</code>
+
+        <br><br>
+
+        <strong>Types :</strong>
 
         <br>
 
-        • les majuscules<br>
-        • les minuscules<br>
-        • les chiffres<br>
-        • les caractères spéciaux<br>
-        • les espaces<br>
-        • les retours à la ligne
+        <code>U</code> = majuscule
+
+        <br>
+
+        <code>L</code> = minuscule
+
+        <br>
+
+        <code>D</code> = chiffre
+
+        <br>
+
+        <code>S</code> = caractère spécial
+
+        <br>
+
+        <code>E</code> = espace
+
+        <br>
+
+        <code>N</code> = retour à la ligne
+
+        <br>
+
+        <code>T</code> = tabulation
+
+        <br>
+
+        <code>X</code> = caractère Unicode
 
         <br><br>
 
-        Chaque caractère possède un identifiant permettant au décodage
-        de reconstruire exactement le texte original.
+        Les caractères sont séparés par <code>;</code>.
 
         <br><br>
 
@@ -259,11 +280,7 @@
 
         <br>
 
-        sera décodé exactement en :
-
-        <br>
-
-        <code>Password 123!</code>
+        conserve exactement la casse, l'espace, les chiffres et le caractère <code>!</code>.
 
     </div>
 
@@ -280,32 +297,32 @@ TABLE MORSE
 
 const MORSE = {
 
-    "A": ".-",
-    "B": "-...",
-    "C": "-.-.",
-    "D": "-..",
-    "E": ".",
-    "F": "..-.",
-    "G": "--.",
-    "H": "....",
-    "I": "..",
-    "J": ".---",
-    "K": "-.-",
-    "L": ".-..",
-    "M": "--",
-    "N": "-.",
-    "O": "---",
-    "P": ".--.",
-    "Q": "--.-",
-    "R": ".-.",
-    "S": "...",
-    "T": "-",
-    "U": "..-",
-    "V": "...-",
-    "W": ".--",
-    "X": "-..-",
-    "Y": "-.--",
-    "Z": "--..",
+    A: ".-",
+    B: "-...",
+    C: "-.-.",
+    D: "-..",
+    E: ".",
+    F: "..-.",
+    G: "--.",
+    H: "....",
+    I: "..",
+    J: ".---",
+    K: "-.-",
+    L: ".-..",
+    M: "--",
+    N: "-.",
+    O: "---",
+    P: ".--.",
+    Q: "--.-",
+    R: ".-.",
+    S: "...",
+    T: "-",
+    U: "..-",
+    V: "...-",
+    W: ".--",
+    X: "-..-",
+    Y: "-.--",
+    Z: "--..",
 
     "0": "-----",
     "1": ".----",
@@ -351,17 +368,14 @@ const MORSE = {
 
 /*
 ==========================================================
-CONSTRUCTION DE LA TABLE INVERSÉE
+TABLE INVERSÉE
 ==========================================================
 */
 
 const REVERSE_MORSE = {};
 
 for (const character in MORSE) {
-
-    const code = MORSE[character];
-
-    REVERSE_MORSE[code] = character;
+    REVERSE_MORSE[MORSE[character]] = character;
 }
 
 
@@ -369,37 +383,11 @@ for (const character in MORSE) {
 ==========================================================
 ENCODAGE
 ==========================================================
-
-Format utilisé :
-
-Casse :
-U = majuscule
-L = minuscule
-
-Caractère :
-
-U:.-
-
-ou
-
-L:.-
-
-Chaque caractère est séparé par un espace.
-
-Espace :
-/S
-
-Retour à la ligne :
-/N
-
-==========================================================
 */
 
-function encode() {
+function encodeText(text) {
 
-    const text = document.getElementById("input").value;
-
-    let result = [];
+    const tokens = [];
 
     for (const character of text) {
 
@@ -408,9 +396,7 @@ function encode() {
         */
 
         if (character === " ") {
-
-            result.push("/S");
-
+            tokens.push("E");
             continue;
         }
 
@@ -420,9 +406,7 @@ function encode() {
         */
 
         if (character === "\n") {
-
-            result.push("/N");
-
+            tokens.push("N");
             continue;
         }
 
@@ -432,15 +416,13 @@ function encode() {
         */
 
         if (character === "\t") {
-
-            result.push("/T");
-
+            tokens.push("T");
             continue;
         }
 
 
         /*
-        CARACTÈRE MORSE
+        CARACTÈRE CONNU
         */
 
         const upper = character.toUpperCase();
@@ -450,43 +432,54 @@ function encode() {
             const code = MORSE[upper];
 
             /*
-            U = majuscule
-            L = minuscule
+            LETTRE
             */
 
-            if (character === upper) {
+            if (/^[A-ZÀÉÈÇ]$/.test(upper)) {
 
-                result.push("U:" + code);
+                if (character === upper) {
+                    tokens.push("U|" + code);
+                } else {
+                    tokens.push("L|" + code);
+                }
 
-            } else {
-
-                result.push("L:" + code);
-
+                continue;
             }
 
-        } else {
 
             /*
-            Caractère Unicode non présent
-            dans la table Morse.
-
-            On utilise son code Unicode.
+            CHIFFRE
             */
 
-            const unicode =
-                character.codePointAt(0)
+            if (/^[0-9]$/.test(character)) {
+                tokens.push("D|" + code);
+                continue;
+            }
+
+
+            /*
+            CARACTÈRE SPÉCIAL
+            */
+
+            tokens.push("S|" + code);
+            continue;
+        }
+
+
+        /*
+        CARACTÈRE UNICODE
+        */
+
+        const unicode =
+            character
+                .codePointAt(0)
                 .toString(16)
                 .toUpperCase();
 
-            result.push("X:" + unicode);
-        }
+        tokens.push("X|" + unicode);
     }
 
-
-    document.getElementById("output").value =
-        result.join(" ");
-
-    setStatus("Texte encodé avec succès.");
+    return tokens.join(";");
 }
 
 
@@ -496,37 +489,24 @@ DÉCODAGE
 ==========================================================
 */
 
-function decode() {
+function decodeText(encoded) {
 
-    const encoded =
-        document.getElementById("input").value.trim();
-
-    if (!encoded) {
-
-        document.getElementById("output").value = "";
-
-        setStatus("");
-
-        return;
+    if (encoded === "") {
+        return "";
     }
 
-
-    const tokens = encoded.split(/\s+/);
+    const tokens = encoded.split(";");
 
     let result = "";
 
-
     for (const token of tokens) {
-
 
         /*
         ESPACE
         */
 
-        if (token === "/S") {
-
+        if (token === "E") {
             result += " ";
-
             continue;
         }
 
@@ -535,10 +515,8 @@ function decode() {
         RETOUR À LA LIGNE
         */
 
-        if (token === "/N") {
-
+        if (token === "N") {
             result += "\n";
-
             continue;
         }
 
@@ -547,10 +525,8 @@ function decode() {
         TABULATION
         */
 
-        if (token === "/T") {
-
+        if (token === "T") {
             result += "\t";
-
             continue;
         }
 
@@ -559,22 +535,19 @@ function decode() {
         UNICODE
         */
 
-        if (token.startsWith("X:")) {
+        if (token.startsWith("X|")) {
 
-            const hex =
-                token.substring(2);
+            const hex = token.substring(2);
 
-            try {
+            const value = parseInt(hex, 16);
 
-                result +=
-                    String.fromCodePoint(
-                        parseInt(hex, 16)
-                    );
-
-            } catch {
-
-                result += "�";
+            if (Number.isNaN(value)) {
+                throw new Error(
+                    "Code Unicode invalide : " + token
+                );
             }
+
+            result += String.fromCodePoint(value);
 
             continue;
         }
@@ -585,33 +558,57 @@ function decode() {
         */
 
         if (
-            token.startsWith("U:") ||
-            token.startsWith("L:")
+            token.startsWith("U|") ||
+            token.startsWith("L|") ||
+            token.startsWith("D|") ||
+            token.startsWith("S|")
         ) {
 
-            const type = token.substring(0, 1);
+            const type = token.charAt(0);
 
             const code = token.substring(2);
 
-            const character =
-                REVERSE_MORSE[code];
-
+            const character = REVERSE_MORSE[code];
 
             if (!character) {
-
-                result += "�";
-
-                continue;
+                throw new Error(
+                    "Code Morse inconnu : " + code
+                );
             }
 
 
+            /*
+            LETTRE MINUSCULE
+            */
+
             if (type === "L") {
+                result += character.toLowerCase();
+            }
 
-                result +=
-                    character.toLowerCase();
 
-            } else {
+            /*
+            LETTRE MAJUSCULE
+            */
 
+            else if (type === "U") {
+                result += character.toUpperCase();
+            }
+
+
+            /*
+            CHIFFRE
+            */
+
+            else if (type === "D") {
+                result += character;
+            }
+
+
+            /*
+            CARACTÈRE SPÉCIAL
+            */
+
+            else if (type === "S") {
                 result += character;
             }
 
@@ -619,18 +616,213 @@ function decode() {
         }
 
 
-        /*
-        TOKEN INCONNU
-        */
+        throw new Error(
+            "Élément invalide : " + token
+        );
+    }
 
-        result += "�";
+    return result;
+}
+
+
+/*
+==========================================================
+BOUTON ENCODER
+==========================================================
+*/
+
+function encode() {
+
+    const input =
+        document.getElementById("input").value;
+
+    try {
+
+        const result = encodeText(input);
+
+        document.getElementById("output").value =
+            result;
+
+        setStatus(
+            "Encodage terminé.",
+            "success"
+        );
+
+    } catch (error) {
+
+        setStatus(
+            "Erreur : " + error.message,
+            "error"
+        );
+    }
+}
+
+
+/*
+==========================================================
+BOUTON DÉCODER
+==========================================================
+*/
+
+function decode() {
+
+    const input =
+        document.getElementById("input").value;
+
+    try {
+
+        const result = decodeText(input);
+
+        document.getElementById("output").value =
+            result;
+
+        setStatus(
+            "Décodage terminé.",
+            "success"
+        );
+
+    } catch (error) {
+
+        document.getElementById("output").value = "";
+
+        setStatus(
+            "Erreur : " + error.message,
+            "error"
+        );
+    }
+}
+
+
+/*
+==========================================================
+TEST DE RÉVERSIBILITÉ
+==========================================================
+*/
+
+function testReversibility() {
+
+    const original =
+        document.getElementById("input").value;
+
+    const details =
+        document.getElementById("testDetails");
+
+
+    /*
+    Rien à tester
+    */
+
+    if (original.length === 0) {
+
+        setStatus(
+            "Entre d'abord un texte à tester.",
+            "error"
+        );
+
+        details.style.display = "none";
+
+        return;
     }
 
 
-    document.getElementById("output").value =
-        result;
+    try {
 
-    setStatus("Morse décodé avec succès.");
+        /*
+        ÉTAPE 1
+        */
+
+        const encoded =
+            encodeText(original);
+
+
+        /*
+        ÉTAPE 2
+        */
+
+        const decoded =
+            decodeText(encoded);
+
+
+        /*
+        ÉTAPE 3
+        */
+
+        const success =
+            original === decoded;
+
+
+        /*
+        AFFICHAGE DU MORSE
+        */
+
+        document.getElementById("output").value =
+            encoded;
+
+
+        /*
+        TEST RÉUSSI
+        */
+
+        if (success) {
+
+            setStatus(
+                "✓ TEST RÉUSSI — Le texte est parfaitement réversible.",
+                "success"
+            );
+
+            details.style.display = "block";
+
+            details.textContent =
+                "Texte original :\n" +
+                original +
+                "\n\n" +
+
+                "Texte décodé :\n" +
+                decoded +
+                "\n\n" +
+
+                "Comparaison : IDENTIQUE\n" +
+
+                "Nombre de caractères : " +
+                [...original].length;
+
+        }
+
+
+        /*
+        TEST ÉCHOUÉ
+        */
+
+        else {
+
+            setStatus(
+                "✗ TEST ÉCHOUÉ — Le texte décodé est différent.",
+                "error"
+            );
+
+            details.style.display = "block";
+
+            details.textContent =
+                "Original :\n" +
+                original +
+                "\n\n" +
+
+                "Décodé :\n" +
+                decoded;
+        }
+
+    } catch (error) {
+
+        setStatus(
+            "✗ TEST ÉCHOUÉ — " + error.message,
+            "error"
+        );
+
+        details.style.display = "block";
+
+        details.textContent =
+            error.message;
+    }
 }
 
 
@@ -647,7 +839,10 @@ async function copyResult() {
 
     if (!output.value) {
 
-        setStatus("Rien à copier.");
+        setStatus(
+            "Rien à copier.",
+            "error"
+        );
 
         return;
     }
@@ -659,7 +854,10 @@ async function copyResult() {
             output.value
         );
 
-        setStatus("Résultat copié.");
+        setStatus(
+            "Résultat copié.",
+            "success"
+        );
 
     } catch {
 
@@ -667,7 +865,10 @@ async function copyResult() {
 
         document.execCommand("copy");
 
-        setStatus("Résultat copié.");
+        setStatus(
+            "Résultat copié.",
+            "success"
+        );
     }
 }
 
@@ -684,20 +885,28 @@ function clearAll() {
 
     document.getElementById("output").value = "";
 
-    setStatus("");
+    document.getElementById("testDetails").style.display =
+        "none";
+
+    setStatus("", "");
 }
 
 
 /*
 ==========================================================
-MESSAGE DE STATUT
+STATUT
 ==========================================================
 */
 
-function setStatus(message) {
+function setStatus(message, type) {
 
-    document.getElementById("status").textContent =
-        message;
+    const status =
+        document.getElementById("status");
+
+    status.textContent = message;
+
+    status.className =
+        "status " + type;
 }
 
 </script>
