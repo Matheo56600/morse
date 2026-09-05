@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Encodeur Morse personnalisé</title>
+
+    <title>Traducteur Morse</title>
 
     <style>
         * {
@@ -14,107 +15,157 @@
         body {
             margin: 0;
             min-height: 100vh;
-            font-family: Arial, sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
             background: #0f1115;
             color: #ffffff;
+
             display: flex;
             justify-content: center;
             align-items: center;
+
             padding: 20px;
         }
 
         .container {
             width: 100%;
-            max-width: 850px;
+            max-width: 900px;
+
             background: #181b21;
+
             border: 1px solid #2d323b;
             border-radius: 16px;
+
             padding: 30px;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.45);
         }
 
         h1 {
+            margin: 0;
             text-align: center;
-            margin-top: 0;
-            margin-bottom: 10px;
+            font-size: 30px;
         }
 
-        .description {
+        .subtitle {
             text-align: center;
             color: #9da3ad;
+            margin-top: 8px;
             margin-bottom: 30px;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
             font-weight: bold;
+            margin-bottom: 8px;
         }
 
         textarea {
             width: 100%;
-            min-height: 150px;
+            min-height: 180px;
+
             resize: vertical;
+
             background: #0f1115;
             color: #ffffff;
+
             border: 1px solid #343a45;
             border-radius: 10px;
+
             padding: 15px;
-            font-size: 16px;
+
+            font-family: Consolas, monospace;
+            font-size: 15px;
+
             outline: none;
         }
 
         textarea:focus {
-            border-color: #6c7cff;
+            border-color: #5865f2;
         }
 
         .buttons {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+
             gap: 10px;
+
             margin: 20px 0;
-            flex-wrap: wrap;
         }
 
         button {
-            flex: 1;
-            min-width: 180px;
-            padding: 13px 18px;
             border: none;
             border-radius: 9px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: bold;
+
+            padding: 13px;
+
             background: #5865f2;
             color: white;
+
+            font-size: 14px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.15s;
         }
 
         button:hover {
-            filter: brightness(1.1);
+            filter: brightness(1.15);
+            transform: translateY(-1px);
         }
 
         button.secondary {
             background: #30343d;
         }
 
+        .status {
+            min-height: 22px;
+
+            margin-top: 10px;
+
+            color: #7ee787;
+
+            font-size: 14px;
+        }
+
         .info {
             margin-top: 20px;
+
             padding: 15px;
-            background: #101217;
+
             border-radius: 10px;
+
+            background: #101217;
+
             color: #aeb4bf;
-            font-size: 14px;
+
+            font-size: 13px;
             line-height: 1.6;
         }
 
-        .status {
-            margin-top: 10px;
-            color: #7ee787;
-            min-height: 20px;
+        code {
+            background: #242832;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-family: Consolas, monospace;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 700px) {
+
+            .buttons {
+                grid-template-columns: 1fr 1fr;
+            }
+
             .container {
                 padding: 20px;
+            }
+        }
+
+        @media (max-width: 450px) {
+
+            .buttons {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -124,195 +175,531 @@
 
 <div class="container">
 
-    <h1>Encodeur Morse personnalisé</h1>
+    <h1>Traducteur Morse</h1>
 
-    <div class="description">
-        Morse avec distinction entre majuscules et minuscules
+    <div class="subtitle">
+        Encodeur et décodeur Morse réversible
     </div>
 
-    <label for="input">Texte / Morse</label>
+    <label for="input">
+        Texte / Morse
+    </label>
 
     <textarea
         id="input"
-        placeholder="Écris ton texte ici..."
+        spellcheck="false"
+        placeholder="Écris ton texte ou colle ton Morse ici..."
     ></textarea>
 
+
     <div class="buttons">
-        <button onclick="encode()">Encoder en Morse</button>
-        <button onclick="decode()" class="secondary">Décoder le Morse</button>
-        <button onclick="copyResult()" class="secondary">Copier</button>
-        <button onclick="clearAll()" class="secondary">Effacer</button>
+
+        <button onclick="encode()">
+            Encoder
+        </button>
+
+        <button onclick="decode()">
+            Décoder
+        </button>
+
+        <button class="secondary" onclick="copyResult()">
+            Copier
+        </button>
+
+        <button class="secondary" onclick="clearAll()">
+            Effacer
+        </button>
+
     </div>
 
-    <label for="output">Résultat</label>
+
+    <label for="output">
+        Résultat
+    </label>
 
     <textarea
         id="output"
         readonly
+        spellcheck="false"
         placeholder="Le résultat apparaîtra ici..."
     ></textarea>
 
     <div class="status" id="status"></div>
 
-    <div class="info">
-        <strong>Format utilisé :</strong><br>
-        • Une lettre = son code Morse<br>
-        • Une minuscule possède un <code>_</code> supplémentaire à la fin<br>
-        • Les lettres sont séparées par un espace<br>
-        • Les mots sont séparés par <code>/</code><br><br>
 
-        Exemple :<br>
-        <code>AaBb</code> devient
-        <code>.- .-_ -... -..._</code>
+    <div class="info">
+
+        <strong>Informations</strong>
+
+        <br><br>
+
+        Le système conserve exactement :
+
+        <br>
+
+        • les majuscules<br>
+        • les minuscules<br>
+        • les chiffres<br>
+        • les caractères spéciaux<br>
+        • les espaces<br>
+        • les retours à la ligne
+
+        <br><br>
+
+        Chaque caractère possède un identifiant permettant au décodage
+        de reconstruire exactement le texte original.
+
+        <br><br>
+
+        Exemple :
+
+        <br>
+
+        <code>Password 123!</code>
+
+        <br>
+
+        sera décodé exactement en :
+
+        <br>
+
+        <code>Password 123!</code>
+
     </div>
 
 </div>
 
+
 <script>
-    const morse = {
-        "A": ".-",    "B": "-...",  "C": "-.-.",  "D": "-..",
-        "E": ".",     "F": "..-.",  "G": "--.",   "H": "....",
-        "I": "..",    "J": ".---",  "K": "-.-",   "L": ".-..",
-        "M": "--",    "N": "-.",    "O": "---",   "P": ".--.",
-        "Q": "--.-",  "R": ".-.",   "S": "...",   "T": "-",
-        "U": "..-",   "V": "...-",  "W": ".--",   "X": "-..-",
-        "Y": "-.--",  "Z": "--..",
 
-        "0": "-----",
-        "1": ".----",
-        "2": "..---",
-        "3": "...--",
-        "4": "....-",
-        "5": ".....",
-        "6": "-....",
-        "7": "--...",
-        "8": "---..",
-        "9": "----.",
+/*
+==========================================================
+TABLE MORSE
+==========================================================
+*/
 
-        ".": ".-.-.-",
-        ",": "--..--",
-        "?": "..--..",
-        "!": "-.-.--",
-        "'": ".----.",
-        "\"": ".-..-.",
-        ":": "---...",
-        ";": "-.-.-.",
-        "/": "-..-.",
-        "(": "-.--.",
-        ")": "-.--.-",
-        "&": ".-...",
-        "=": "-...-",
-        "+": ".-.-.",
-        "-": "-....-",
-        "_": "..--.-",
-        "$": "...-..-",
-        "@": ".--.-."
-    };
+const MORSE = {
 
-    const input = document.getElementById("input");
-    const output = document.getElementById("output");
-    const status = document.getElementById("status");
+    "A": ".-",
+    "B": "-...",
+    "C": "-.-.",
+    "D": "-..",
+    "E": ".",
+    "F": "..-.",
+    "G": "--.",
+    "H": "....",
+    "I": "..",
+    "J": ".---",
+    "K": "-.-",
+    "L": ".-..",
+    "M": "--",
+    "N": "-.",
+    "O": "---",
+    "P": ".--.",
+    "Q": "--.-",
+    "R": ".-.",
+    "S": "...",
+    "T": "-",
+    "U": "..-",
+    "V": "...-",
+    "W": ".--",
+    "X": "-..-",
+    "Y": "-.--",
+    "Z": "--..",
 
-    function encode() {
-        const text = input.value;
+    "0": "-----",
+    "1": ".----",
+    "2": "..---",
+    "3": "...--",
+    "4": "....-",
+    "5": ".....",
+    "6": "-....",
+    "7": "--...",
+    "8": "---..",
+    "9": "----.",
 
-        let result = "";
+    ".": ".-.-.-",
+    ",": "--..--",
+    "?": "..--..",
+    "!": "-.-.--",
+    "'": ".----.",
+    "\"": ".-..-.",
+    ":": "---...",
+    ";": "-.-.-.",
+    "/": "-..-.",
+    "(": "-.--.",
+    ")": "-.--.-",
+    "&": ".-...",
+    "=": "-...-",
+    "+": ".-.-.",
+    "-": "-....-",
+    "_": "..--.-",
+    "$": "...-..-",
+    "@": ".--.-.",
+    "#": "......",
+    "*": "-..-.-",
+    "%": ".....-",
+    "^": "..--.-",
+    "~": ".-.-..",
 
-        for (const char of text) {
+    "À": ".--.-",
+    "É": "..-..",
+    "È": ".-..-",
+    "Ç": "-.-.."
+};
 
-            if (char === " ") {
-                result += "/ ";
+
+/*
+==========================================================
+CONSTRUCTION DE LA TABLE INVERSÉE
+==========================================================
+*/
+
+const REVERSE_MORSE = {};
+
+for (const character in MORSE) {
+
+    const code = MORSE[character];
+
+    REVERSE_MORSE[code] = character;
+}
+
+
+/*
+==========================================================
+ENCODAGE
+==========================================================
+
+Format utilisé :
+
+Casse :
+U = majuscule
+L = minuscule
+
+Caractère :
+
+U:.-
+
+ou
+
+L:.-
+
+Chaque caractère est séparé par un espace.
+
+Espace :
+/S
+
+Retour à la ligne :
+/N
+
+==========================================================
+*/
+
+function encode() {
+
+    const text = document.getElementById("input").value;
+
+    let result = [];
+
+    for (const character of text) {
+
+        /*
+        ESPACE
+        */
+
+        if (character === " ") {
+
+            result.push("/S");
+
+            continue;
+        }
+
+
+        /*
+        RETOUR À LA LIGNE
+        */
+
+        if (character === "\n") {
+
+            result.push("/N");
+
+            continue;
+        }
+
+
+        /*
+        TABULATION
+        */
+
+        if (character === "\t") {
+
+            result.push("/T");
+
+            continue;
+        }
+
+
+        /*
+        CARACTÈRE MORSE
+        */
+
+        const upper = character.toUpperCase();
+
+        if (MORSE[upper]) {
+
+            const code = MORSE[upper];
+
+            /*
+            U = majuscule
+            L = minuscule
+            */
+
+            if (character === upper) {
+
+                result.push("U:" + code);
+
+            } else {
+
+                result.push("L:" + code);
+
+            }
+
+        } else {
+
+            /*
+            Caractère Unicode non présent
+            dans la table Morse.
+
+            On utilise son code Unicode.
+            */
+
+            const unicode =
+                character.codePointAt(0)
+                .toString(16)
+                .toUpperCase();
+
+            result.push("X:" + unicode);
+        }
+    }
+
+
+    document.getElementById("output").value =
+        result.join(" ");
+
+    setStatus("Texte encodé avec succès.");
+}
+
+
+/*
+==========================================================
+DÉCODAGE
+==========================================================
+*/
+
+function decode() {
+
+    const encoded =
+        document.getElementById("input").value.trim();
+
+    if (!encoded) {
+
+        document.getElementById("output").value = "";
+
+        setStatus("");
+
+        return;
+    }
+
+
+    const tokens = encoded.split(/\s+/);
+
+    let result = "";
+
+
+    for (const token of tokens) {
+
+
+        /*
+        ESPACE
+        */
+
+        if (token === "/S") {
+
+            result += " ";
+
+            continue;
+        }
+
+
+        /*
+        RETOUR À LA LIGNE
+        */
+
+        if (token === "/N") {
+
+            result += "\n";
+
+            continue;
+        }
+
+
+        /*
+        TABULATION
+        */
+
+        if (token === "/T") {
+
+            result += "\t";
+
+            continue;
+        }
+
+
+        /*
+        UNICODE
+        */
+
+        if (token.startsWith("X:")) {
+
+            const hex =
+                token.substring(2);
+
+            try {
+
+                result +=
+                    String.fromCodePoint(
+                        parseInt(hex, 16)
+                    );
+
+            } catch {
+
+                result += "�";
+            }
+
+            continue;
+        }
+
+
+        /*
+        MORSE
+        */
+
+        if (
+            token.startsWith("U:") ||
+            token.startsWith("L:")
+        ) {
+
+            const type = token.substring(0, 1);
+
+            const code = token.substring(2);
+
+            const character =
+                REVERSE_MORSE[code];
+
+
+            if (!character) {
+
+                result += "�";
+
                 continue;
             }
 
-            const upper = char.toUpperCase();
 
-            if (morse[upper]) {
+            if (type === "L") {
 
-                // Minuscule = Morse + "_"
-                if (char !== upper && /[A-Z]/.test(upper)) {
-                    result += morse[upper] + "_ ";
-                } else {
-                    result += morse[upper] + " ";
-                }
+                result +=
+                    character.toLowerCase();
 
             } else {
-                result += char + " ";
+
+                result += character;
             }
+
+            continue;
         }
 
-        output.value = result.trim();
-        status.textContent = "Texte encodé.";
+
+        /*
+        TOKEN INCONNU
+        */
+
+        result += "�";
     }
 
-    function decode() {
 
-        const text = input.value.trim();
+    document.getElementById("output").value =
+        result;
 
-        if (!text) {
-            output.value = "";
-            return;
-        }
+    setStatus("Morse décodé avec succès.");
+}
 
-        const reverse = {};
 
-        for (const letter in morse) {
-            reverse[morse[letter]] = letter;
-        }
+/*
+==========================================================
+COPIER
+==========================================================
+*/
 
-        const words = text.split("/");
+async function copyResult() {
 
-        const decodedWords = words.map(word => {
+    const output =
+        document.getElementById("output");
 
-            const letters = word.trim().split(/\s+/);
+    if (!output.value) {
 
-            return letters.map(code => {
+        setStatus("Rien à copier.");
 
-                // "_" final = minuscule
-                if (code.endsWith("_")) {
-
-                    const normalCode = code.slice(0, -1);
-                    const letter = reverse[normalCode];
-
-                    if (letter && /[A-Z]/.test(letter)) {
-                        return letter.toLowerCase();
-                    }
-
-                    return "?";
-                }
-
-                return reverse[code] || "?";
-
-            }).join("");
-
-        });
-
-        output.value = decodedWords.join(" ");
-        status.textContent = "Morse décodé.";
+        return;
     }
 
-    async function copyResult() {
 
-        if (!output.value) {
-            status.textContent = "Rien à copier.";
-            return;
-        }
+    try {
 
-        try {
-            await navigator.clipboard.writeText(output.value);
-            status.textContent = "Résultat copié.";
-        } catch {
-            output.select();
-            document.execCommand("copy");
-            status.textContent = "Résultat copié.";
-        }
+        await navigator.clipboard.writeText(
+            output.value
+        );
+
+        setStatus("Résultat copié.");
+
+    } catch {
+
+        output.select();
+
+        document.execCommand("copy");
+
+        setStatus("Résultat copié.");
     }
+}
 
-    function clearAll() {
-        input.value = "";
-        output.value = "";
-        status.textContent = "";
-    }
+
+/*
+==========================================================
+EFFACER
+==========================================================
+*/
+
+function clearAll() {
+
+    document.getElementById("input").value = "";
+
+    document.getElementById("output").value = "";
+
+    setStatus("");
+}
+
+
+/*
+==========================================================
+MESSAGE DE STATUT
+==========================================================
+*/
+
+function setStatus(message) {
+
+    document.getElementById("status").textContent =
+        message;
+}
+
 </script>
 
 </body>
